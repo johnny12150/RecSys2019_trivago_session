@@ -2,12 +2,12 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-train_seesion = pd.read_csv("data/train.csv", usecols=[0, 1, 2, 5])
+train_seesion = pd.read_csv("data/train.csv", usecols=[0, 1, 2, 4, 5])
 # test_seesion = pd.read_csv("data/test.csv")
 output_path = './data/baseline model/'
 
-# TODO 只保留click out
-
+# 只保留click out
+train_seesion = train_seesion[train_seesion.action_type == 'clickout item']
 
 # 只保留 reference有值且是數字
 train_seesion = train_seesion[train_seesion['reference'].apply(lambda x: str(x).isdigit())]
@@ -16,8 +16,8 @@ train_seesion['reference'] = train_seesion['reference'].astype(int)
 # 過濾掉出現次數過少的 item
 item_supports = train_seesion.groupby('reference').size()
 train_seesion = train_seesion[np.in1d(train_seesion.reference, item_supports[item_supports>=5].index)]
-session_lengths = train_seesion.groupby('session_id').size()
-train_seesion = train_seesion[np.in1d(train_seesion.session_id, session_lengths[session_lengths>=2].index)]
+# 取 len > 2的 session id
+train_seesion = train_seesion.groupby('session_id').filter(lambda x: len(x) > 2)
 
 # user id mapping成數字
 # le = LabelEncoder()
